@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongoDB
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: testdb
+    volumes:
+      - /home/sebastian/docker_2025/parcial_2/mongodb:/data/db
+      - /home/sebastian/docker_2025/parcial_2/backup_mongodb:/backup # Para el backup
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/test --quiet
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  create-service:
+    image: sebastianarce/create-golang
+    container_name: create-golang
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: testdb
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  read-service:
+    image: sebastianarce/read-golang
+    container_name: read-golang
+    ports:
+      - "8082:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: testdb
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  update-service:
+    image: sebastianarce/update-golang
+    container_name: update-golang
+    ports:
+      - "8083:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: testdb
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  delete-service:
+    image: sebastianarce/delete-golang
+    container_name: delete-golang
+    ports:
+      - "8081:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: testdb
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:

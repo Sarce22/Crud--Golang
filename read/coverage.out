@@ -1,0 +1,8 @@
+mode: set
+crud-microservice/controllers/user_controller.go:18.71,20.2 1 0
+crud-microservice/controllers/user_controller.go:24.78,27.19 2 1
+crud-microservice/controllers/user_controller.go:27.19,31.6 2 1
+crud-microservice/controllers/user_controller.go:34.5,35.37 2 1
+crud-microservice/controllers/user_controller.go:41.82,48.19 4 1
+crud-microservice/controllers/user_controller.go:48.19,52.6 2 1
+crud-microservice/controllers/user_controller.go:55.5,56.36 2 1

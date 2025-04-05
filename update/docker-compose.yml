@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DATABASE=testdb
+    networks:
+      - app_network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
