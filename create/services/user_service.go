@@ -65,3 +65,5 @@ func (s *UserService) CreateUser(nombre, telefono, direccion, cedula, correo str
 	// Retornar el usuario creado si todo fue exitoso.
 	return user, nil
 }
+
+//prueba de sh

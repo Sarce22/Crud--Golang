@@ -20,7 +20,7 @@ services:
       - app-network
 
   create-service:
-    image: sebastianarce/create-golang
+    image: sebastianarce/create-golang:latest
     container_name: create-golang
     ports:
       - "8080:8080"
@@ -35,7 +35,7 @@ services:
       - app-network
 
   read-service:
-    image: sebastianarce/read-golang
+    image: sebastianarce/read-golang:latest
     container_name: read-golang
     ports:
       - "8082:8080"
@@ -50,7 +50,7 @@ services:
       - app-network
 
   update-service:
-    image: sebastianarce/update-golang
+    image: sebastianarce/update-golang:latest
     container_name: update-golang
     ports:
       - "8083:8080"
@@ -65,7 +65,7 @@ services:
       - app-network
 
   delete-service:
-    image: sebastianarce/delete-golang
+    image: sebastianarce/delete-golang:latest
     container_name: delete-golang
     ports:
       - "8081:8080"
