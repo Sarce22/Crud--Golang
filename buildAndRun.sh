@@ -5,6 +5,7 @@
 # ============================
 GREEN='\033[0;32m'     # Verde
 YELLOW='\033[1;33m'    # Amarillo
+RED='\033[0;31m'       # Rojo
 NC='\033[0m'           # Reset de color
 
 # ============================
@@ -13,20 +14,17 @@ NC='\033[0m'           # Reset de color
 DOCKER_USER="sebastianarce"
 
 # ============================
-# Lista de microservicios
+#  Lista de microservicios
 # ============================
 SERVICES=("create" "read" "update" "delete")
 
 # ============================
-# Paso 1: Verificar cambios en el código
+# Paso 1: Verificar cambios
 # ============================
 echo -e "${GREEN}[INFO] Verificando cambios en los microservicios...${NC}"
 
 CHANGED_SERVICES=()
 
-# ============================
-# Paso 2: Detectar cambios en cada microservicio con git status
-# ============================
 for SERVICE in "${SERVICES[@]}"; do
   if git status --porcelain | grep "${SERVICE}/" > /dev/null; then
     CHANGED_SERVICES+=("$SERVICE")
@@ -34,7 +32,7 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 
 # ============================
-# Paso 3: Si no hay cambios, salir
+# Paso 2: Salir si no hay cambios
 # ============================
 if [ ${#CHANGED_SERVICES[@]} -eq 0 ]; then
   echo -e "${GREEN}[INFO] No se detectaron cambios en los microservicios.${NC}"
@@ -42,7 +40,7 @@ if [ ${#CHANGED_SERVICES[@]} -eq 0 ]; then
 fi
 
 # ============================
-# Paso 4: Mostrar los microservicios con cambios
+# Paso 3: Mostrar cambios
 # ============================
 echo -e "${YELLOW}[CAMBIOS DETECTADOS] Se modificaron:${NC}"
 for svc in "${CHANGED_SERVICES[@]}"; do
@@ -50,59 +48,50 @@ for svc in "${CHANGED_SERVICES[@]}"; do
 done
 
 # ============================
-# Paso 5: Confirmar si se desea continuar
+# Paso 4: Confirmación del usuario
 # ============================
 read -p "¿Deseas reconstruir las imágenes Docker y reiniciar los contenedores? (s/N): " confirm
 
-# ============================
-# Paso 6: Si se confirma, continuar
-# ============================
 if [[ "$confirm" =~ ^[sS]$ ]]; then
 
   # ============================
-  # Paso 6.1: Preguntar si se desea subir a Git
+  # Paso 5: Push opcional a GitHub
   # ============================
   read -p "¿Deseas subir también los cambios a GitHub? (s/N): " push_git
 
   if [[ "$push_git" =~ ^[sS]$ ]]; then
-    echo -e "${GREEN}[INFO] Agregando cambios a Git...${NC}"
+    echo -e "${GREEN}[GIT] Agregando cambios...${NC}"
     git add .
 
-    # ============================
-    # Paso 6.2: Pedir mensaje de commit
-    # ============================
-    read -p "Escribe un mensaje para el commit: " commit_message
+    read -p "📝 Escribe un mensaje para el commit: " commit_message
     git commit -m "$commit_message"
 
-    # ============================
-    # Paso 6.3: Detectar rama actual y hacer push
-    # ============================
     current_branch=$(git symbolic-ref --short HEAD)
-    echo -e "${GREEN}[INFO] Haciendo push a la rama '${current_branch}'...${NC}"
+    echo -e "${GREEN}[GIT] Haciendo push a '${current_branch}'...${NC}"
     git push origin "$current_branch"
   else
-    echo -e "${YELLOW}[GIT] Cambios locales no fueron subidos a GitHub.${NC}"
+    echo -e "${YELLOW}[GIT] Cambios locales NO fueron subidos a GitHub.${NC}"
   fi
 
   # ============================
-  # Paso 7: Build y push de imágenes Docker actualizadas
+  # Paso 6: Build y push Docker
   # ============================
   for svc in "${CHANGED_SERVICES[@]}"; do
     IMAGE_NAME="${DOCKER_USER}/${svc}-golang:latest"
 
     echo -e "${GREEN}[DOCKER] Construyendo imagen: $IMAGE_NAME...${NC}"
-    docker build -t $IMAGE_NAME ./$svc
+    docker build -t "$IMAGE_NAME" "./$svc" || { echo -e "${RED}[ERROR] Falló el build de $svc${NC}"; exit 1; }
 
     echo -e "${GREEN}[DOCKER] Subiendo imagen a Docker Hub: $IMAGE_NAME...${NC}"
-    docker push $IMAGE_NAME
+    docker push "$IMAGE_NAME" || { echo -e "${RED}[ERROR] Falló el push de $svc${NC}"; exit 1; }
   done
 
   # ============================
-  # Paso 8: Reiniciar contenedores
+  # Paso 7: Reiniciar contenedores
   # ============================
   echo -e "${GREEN}[INFO] Reiniciando contenedores...${NC}"
-  docker-compose down
-  docker-compose up -d
+  docker compose down
+  docker compose up -d --build
 
   echo -e "${GREEN}[✔ COMPLETADO] Código, imágenes y contenedores actualizados.${NC}"
 
