@@ -36,3 +36,5 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 func (s *UserService) GetUserByCedula(cedula string) (*models.User, error) {
     return s.Repo.GetUserByCedula(cedula)
 }
+
+//tets 3

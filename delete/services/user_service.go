@@ -37,3 +37,5 @@ func (s *UserService) DeleteUserByID(id primitive.ObjectID) error {
 func (s *UserService) DeleteUserByCedula(cedula string) error {
     return s.Repo.DeleteUserByCedula(cedula)
 }
+
+// test 3
