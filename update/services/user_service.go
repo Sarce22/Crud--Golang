@@ -18,3 +18,6 @@ func NewUserService(repo *repositories.UserRepository) *UserService {
 func (s *UserService) UpdateUserByCedula(cedula string, updateData models.User) (*mongo.UpdateResult, error) {
 	return s.Repository.UpdateUserByCedula(cedula, updateData)
 }
+
+
+// test profe
