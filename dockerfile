@@ -1,38 +1,22 @@
-# Etapa 1: Build
-FROM golang:1.22.4-alpine AS builder
+# Etapa de construcción
+FROM golang:1.22.7-alpine AS builder
 
-# Instala dependencias necesarias para compilar
+WORKDIR /app
+
+# Instalar dependencias necesarias
 RUN apk add --no-cache git
 
-# Crea directorio de trabajo
-WORKDIR /app
-
-# Copia go.mod y go.sum primero para aprovechar la cache
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copia el resto del código
+# Copiar el código fuente
 COPY . .
 
-# Compila el binario (binario estático para alpine)
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+# Descargar dependencias y compilar el binario
+RUN go mod tidy && go build -o main .
 
-# Etapa 2: Imagen liviana para producción
+# Etapa de ejecución mínima
 FROM alpine:3.19
 
-# Crear usuario sin privilegios
-RUN adduser -D appuser
+# Copiar binario compilado desde la etapa anterior
+COPY --from=builder /app/main /app/main
 
-WORKDIR /app
-
-# Copiar el binario desde la etapa anterior
-COPY --from=builder /app/main .
-
-# Usar usuario sin privilegios
-USER appuser
-
-# Puerto expuesto (ajústalo si tu app usa otro)
-EXPOSE 8080
-
-# Comando por defecto
-CMD ["./main"]
+# Establecer el punto de entrada
+ENTRYPOINT ["/app/main"]
