@@ -1,5 +1,5 @@
-# Etapa de construcción
-FROM golang:1.22.7-alpine AS builder
+# Cambiar la versión de Go a la última versión estable
+FROM golang:1.24.2-alpine as builded
 
 WORKDIR /app
 
