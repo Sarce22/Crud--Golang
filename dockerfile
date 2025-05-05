@@ -1,5 +1,5 @@
 # Etapa 1: Imagen base de construcción
-FROM golang:1.21.12-alpine3.21 AS builder
+FROM golang:1.20-alpine as builder
 
 # Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
