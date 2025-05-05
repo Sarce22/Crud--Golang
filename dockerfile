@@ -1,5 +1,5 @@
 # Cambiar la versión de Go a la última versión estable
-FROM golang:1.24.2-alpine as builded
+FROM golang:1.24.2-alpine as builder
 
 WORKDIR /app
 
