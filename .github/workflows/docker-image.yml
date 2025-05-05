@@ -40,7 +40,7 @@ jobs:
       - name: Run Docker image
         run: |
           docker run -d -p 3000:3000 --name test-container ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-          sleep 5  # Esperar que arranque
+          sleep 15  # Esperar que arranque
 
       - name: Test endpoint
         run: |
