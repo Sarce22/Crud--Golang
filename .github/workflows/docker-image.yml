@@ -1,0 +1,51 @@
+name: Docker Build and Scan
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+
+      - name: Push to Docker Hub
+        if: success()  # Solo si pasa Trivy
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+
+  test-container:
+    needs: build-and-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Docker image
+        run: |
+          docker run -d -p 3000:3000 --name test-container ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          sleep 5  # Esperar que arranque
+
+      - name: Test endpoint
+        run: |
+          curl --fail http://localhost:3000/hola || exit 1
+
+      - name: Clean up container
+        if: always()
+        run: docker rm -f test-container
