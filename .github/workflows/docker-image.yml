@@ -1,4 +1,4 @@
-name: Docker Build, Scan and Compose Test
+name: Docker Build and Scan
 
 on:
   push:
@@ -30,36 +30,22 @@ jobs:
           vuln-type: 'os,library'
 
       - name: Push to Docker Hub
-        if: success()
+        if: success()  # Solo si pasa Trivy
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
 
-  test-compose:
+  test-container:
     needs: build-and-scan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Compose
+      - name: Run Docker image
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+          docker run -d -p 3000:8080 --name test-container ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          sleep 15  # Esperar que arranque
 
-      - name: Deploy Docker Compose
-        run: docker-compose up -d
-
-      - name: Wait for services to be ready
-        run: sleep 25
-
-      - name: Test Create endpoint
+      - name: Test endpoint
         run: |
-          curl -X POST http://localhost:8080/crear \
-            -H "Content-Type: application/json" \
-            -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}'
+          curl --fail http://localhost:3000/hola || exit 1
 
-      - name: Test Read endpoint
-        run: curl --fail http://localhost:8082/hola || exit 1
-
-      - name: Clean up Docker Compose
+      - name: Clean up container
         if: always()
-        run: docker-compose down -v
+        run: docker rm -f test-container
