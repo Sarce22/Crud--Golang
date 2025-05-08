@@ -9,8 +9,8 @@ services:
     environment:
       MONGO_INITDB_DATABASE: testdb
     volumes:
-      - /home/sebastian/docker_2025/parcial_2/mongodb:/data/db
-      - /home/sebastian/docker_2025/parcial_2/backup_mongodb:/backup # Para el backup
+      - mongodb_data:/data/db
+      - mongodb_backup:/backup  # Para el backup
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/test --quiet
       interval: 10s
@@ -81,3 +81,7 @@ services:
 
 networks:
   app-network:
+
+volumes:
+  mongodb_data:
+  mongodb_backup:
