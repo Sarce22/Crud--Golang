@@ -57,7 +57,7 @@ jobs:
       # Levantar los servicios con Docker Compose para probar los endpoints POST, PUT y DELETE
       - name: Set up Docker Compose and run services
         run: |
-          docker-compose -f docker-compose.yaml up -d  # Levanta los servicios de Docker Compose
+          docker-compose -f ./docker-compose.yaml up -d  # Levanta los servicios de Docker Compose
           sleep 15  # Esperar que arranquen los servicios
 
       - name: Test Create endpoint (POST)
