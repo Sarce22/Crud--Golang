@@ -57,14 +57,12 @@ jobs:
       # Levantar los servicios con Docker Compose para probar los endpoints POST, PUT y DELETE
       - name: Set up Docker Compose and run services
         run: |
-          compose -f compose.yml up -d  # Levanta los servicios de Docker Compose
+          docker-compose -f compose.yml up -d  # Levanta los servicios de Docker Compose
           sleep 15  # Esperar que arranquen los servicios
 
       - name: Test Create endpoint (POST)
         run: |
-          curl -X POST http://localhost:8080/crear \
+          curl -X POST http://localhost:8080/create \
             -H "Content-Type: application/json" \
             -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
             || exit 1
-
-      
