@@ -48,7 +48,7 @@ jobs:
 
       - name: Run Docker image for Read service (GET /hola)
         run: |
-          docker run -d -p 8082:8080 --name read-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          docker run -d -p 8082:8080 --name hola-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
           sleep 15  # Esperar que arranque el servicio
 
       - name: Test Read endpoint (GET /hola)
