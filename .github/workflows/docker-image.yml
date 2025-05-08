@@ -37,6 +37,13 @@ jobs:
     needs: build-and-scan
     runs-on: ubuntu-latest
     steps:
+      # Instalar Docker Compose
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version  # Verificar instalación
+
       # Levantar contenedor para probar el endpoint 'GET /hola' (read-service)
       - name: Run Docker image for Read service (GET /hola)
         run: |
@@ -59,3 +66,5 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
             || exit 1
+
+      
