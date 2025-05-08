@@ -66,3 +66,16 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
             || exit 1
+
+   # Pruebas unitarias dentro de los contenedores
+      - name: Test create-service
+        run: docker exec $(docker ps -qf "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/create-golang") go test ./controllers -v --cover
+
+      - name: Test read-service
+        run: docker exec $(docker ps -qf "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/read-golang") go test ./controllers -v --cover
+
+      - name: Test update-service
+        run: docker exec $(docker ps -qf "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/update-golang") go test ./controllers -v --cover
+
+      - name: Test delete-service
+        run: docker exec $(docker ps -qf "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/delete-golang") go test ./controllers -v --cover
