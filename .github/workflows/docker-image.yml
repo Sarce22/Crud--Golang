@@ -33,7 +33,7 @@ jobs:
         if: success()  # Solo si pasa Trivy
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
 
-  test-container-image_1:
+  test-container:
     needs: build-and-scan
     runs-on: ubuntu-latest
     steps:
@@ -49,21 +49,3 @@ jobs:
       - name: Clean up container
         if: always()
         run: docker rm -f test-container
-
-test-container-compose:
-    needs: build-and-scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Docker image
-        run: |
-          docker-compose -f docker-compose.yml up -d  # Levanta los servicios con Docker Compose
-          sleep 15  # Esperar que arranquen los servicios
-
-      - name: Test Create endpoint (POST)
-        run: |
-          curl -X POST http://localhost:8080/create \
-            -H "Content-Type: application/json" \
-            -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
-            || exit 1
-
-      
