@@ -1,4 +1,4 @@
-name: Docker Build and Scan
+name: Docker Build, Scan, and Test Endpoints
 
 on:
   push:
@@ -33,19 +33,29 @@ jobs:
         if: success()  # Solo si pasa Trivy
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
 
-  test-container:
+  test-endpoints:
     needs: build-and-scan
     runs-on: ubuntu-latest
     steps:
-      - name: Run Docker image
+      # Levantar contenedor para probar el endpoint 'GET /hola' (read-service)
+      - name: Run Docker image for Read service (GET /hola)
         run: |
-          docker run -d -p 3000:8080 --name test-container ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-          sleep 15  # Esperar que arranque
+          docker run -d -p 8082:8080 --name read-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          sleep 15  # Esperar que arranque el servicio
 
-      - name: Test endpoint
+      - name: Test Read endpoint (GET /hola)
         run: |
-          curl --fail http://localhost:3000/hola || exit 1
+          curl --fail http://localhost:8082/hola || exit 1
 
-      - name: Clean up container
-        if: always()
-        run: docker rm -f test-container
+      # Levantar los servicios con Docker Compose para probar los endpoints POST, PUT y DELETE
+      - name: Set up Docker Compose and run services
+        run: |
+          docker-compose -f docker-compose.yml up -d  # Levanta los servicios de Docker Compose
+          sleep 15  # Esperar que arranquen los servicios
+
+      - name: Test Create endpoint (POST)
+        run: |
+          curl -X POST http://localhost:8080/crear \
+            -H "Content-Type: application/json" \
+            -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
+            || exit 1
