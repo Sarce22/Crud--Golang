@@ -20,7 +20,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
 
-      - name: Install Trivy
+      - name: Install Trivy and Scan Image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
@@ -44,23 +44,23 @@ jobs:
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version  # Verificar instalación
+          docker-compose --version
 
       - name: Run Docker image for Read service (GET /hola)
         run: |
           docker run -d -p 8082:8080 --name hola-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-          sleep 15  # Esperar que arranque el servicio
+          sleep 15
 
       - name: Test Read endpoint (GET /hola)
         run: |
           curl --fail http://localhost:8082/hola || exit 1
 
-      - name: Set up Docker Compose and run services
+      - name: Set up Docker Compose and run all services
         run: |
           docker-compose -f ./docker-compose.yaml up -d
-          sleep 15  # Esperar que arranquen los servicios
+          sleep 15
 
-      - name: Test Create endpoint (POST)
+      - name: Test Create endpoint (POST /create)
         run: |
           curl -X POST http://localhost:8080/create \
             -H "Content-Type: application/json" \
@@ -68,7 +68,7 @@ jobs:
             || exit 1
 
   unit-tests:
-    needs: integration-tests
+    needs: test-endpoints
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
