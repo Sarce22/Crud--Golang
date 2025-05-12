@@ -1,10 +1,8 @@
-name: Docker CI/CD with Release
+name: Docker Build, Scan, and Test Endpoints
 
 on:
   push:
     branches: [main]
-    tags:
-      - 'v*'  # Detecta versiones como v1.0.0, v2.3.1, etc.
 
 jobs:
   build-and-scan:
@@ -20,20 +18,20 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }} .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
 
-      - name: Install Trivy and scan image
+      - name: Install Trivy and Scan Image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
 
-      - name: Push Docker image
+      - name: Push to Docker Hub
         if: success()
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
 
   test-endpoints:
     needs: build-and-scan
@@ -48,20 +46,21 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Run Read service (GET /hola)
+      - name: Run Docker image for Read service (GET /hola)
         run: |
-          docker run -d -p 8082:8080 --name hola-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}
+          docker run -d -p 8082:8080 --name hola-golang ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
           sleep 15
 
-      - name: Test Read endpoint
-        run: curl --fail http://localhost:8082/hola || exit 1
+      - name: Test Read endpoint (GET /hola)
+        run: |
+          curl --fail http://localhost:8082/hola || exit 1
 
-      - name: Docker Compose up all services
+      - name: Set up Docker Compose and run all services
         run: |
           docker-compose -f ./docker-compose.yaml up -d
           sleep 15
 
-      - name: Test Create endpoint
+      - name: Test Create endpoint (POST /create)
         run: |
           curl -X POST http://localhost:8080/create \
             -H "Content-Type: application/json" \
@@ -105,19 +104,3 @@ jobs:
       - name: Test delete-service
         working-directory: ./delete
         run: go test ./controllers -v --cover
-
-  release:
-    needs: unit-tests
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            🚀 Nuevo release automático generado por CI/CD
-            - Imagen Docker: `${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}`
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
