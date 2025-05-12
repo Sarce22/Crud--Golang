@@ -67,41 +67,40 @@ jobs:
             -d '{"nombre":"Test","telefono":"123","direccion":"Test","cedula":"999","correo":"test@correo.com"}' \
             || exit 1
 
-unit-tests:
-  needs: test-endpoints
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  unit-tests:
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
 
-    - name: Restore Go cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+      - name: Restore Go cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Test create-service
-      working-directory: ./create
-      run: go test ./controllers -v --cover
+      - name: Test create-service
+        working-directory: ./create
+        run: go test ./controllers -v --cover
 
-    - name: Test read-service
-      working-directory: ./read
-      run: go test ./controllers -v --cover
+      - name: Test read-service
+        working-directory: ./read
+        run: go test ./controllers -v --cover
 
-    - name: Test update-service
-      working-directory: ./update
-      run: go test ./controllers -v --cover
+      - name: Test update-service
+        working-directory: ./update
+        run: go test ./controllers -v --cover
 
-    - name: Test delete-service
-      working-directory: ./delete
-      run: go test ./controllers -v --cover
-
+      - name: Test delete-service
+        working-directory: ./delete
+        run: go test ./controllers -v --cover
