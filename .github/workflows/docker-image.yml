@@ -3,6 +3,8 @@ name: Docker Build, Scan, and Test Endpoints
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*.*.*'  # Activar workflow con tags tipo v1.0.0
 
 jobs:
   build-and-scan:
@@ -18,7 +20,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}
+          fi
 
       - name: Install Trivy and Scan Image
         uses: aquasecurity/trivy-action@master
@@ -31,7 +37,11 @@ jobs:
 
       - name: Push to Docker Hub
         if: success()
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}
+          fi
 
   test-endpoints:
     needs: build-and-scan
@@ -104,3 +114,22 @@ jobs:
       - name: Test delete-service
         working-directory: ./delete
         run: go test ./controllers -v --cover
+
+  release:
+    needs: unit-tests
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            🚀 Nuevo release automático generado por CI/CD
+            - Imagen Docker: `${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.ref_name }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
