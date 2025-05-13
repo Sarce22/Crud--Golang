@@ -124,7 +124,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-push-to-ghcr:
+  push-to-ghcr:
   needs: unit-tests
   runs-on: ubuntu-latest
   steps:
@@ -134,23 +134,21 @@ push-to-ghcr:
     - name: Log in to GitHub Container Registry (GHCR)
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secretS.DOCKERHUB_TOKEN }}
-
-    - name: Set lowercase image name
-      run: echo "REPO=ghcr.io/sarce22/crud-golang/my-app" >> $GITHUB_ENV
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Docker image for GHCR
       run: |
-        docker build -t $REPO:latest .
+        docker build -t ghcr.io/${{ github.repository }}/my-app:latest .
         if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          docker tag $REPO:latest $REPO:${{ github.ref_name }}
+          docker tag ghcr.io/${{ github.repository }}/my-app:latest ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
         fi
 
     - name: Push Docker image to GHCR
       run: |
-        docker push $REPO:latest
+        docker push ghcr.io/${{ github.repository }}/my-app:latest
         if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          docker push $REPO:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
         fi
 
