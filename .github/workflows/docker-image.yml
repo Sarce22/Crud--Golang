@@ -135,7 +135,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ DOCKERHUB_USERNAME }}
-          password: ${{ DOCKERHUB_TOKEN_TOKEN }}
+          password: ${{ DOCKERHUB_TOKEN }}
 
       - name: Build Docker image for GHCR
         run: |
