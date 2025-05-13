@@ -125,30 +125,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   push-to-ghcr:
-  needs: unit-tests
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Log in to GitHub Container Registry (GHCR)
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Docker image for GHCR
-      run: |
-        docker build -t ghcr.io/${{ github.repository }}/my-app:latest .
-        if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          docker tag ghcr.io/${{ github.repository }}/my-app:latest ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
-        fi
+      - name: Build Docker image for GHCR
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/my-app:latest .
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            docker tag ghcr.io/${{ github.repository }}/my-app:latest ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
+          fi
 
-    - name: Push Docker image to GHCR
-      run: |
-        docker push ghcr.io/${{ github.repository }}/my-app:latest
-        if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          docker push ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
-        fi
-
+      - name: Push Docker image to GHCR
+        run: |
+          docker push ghcr.io/${{ github.repository }}/my-app:latest
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            docker push ghcr.io/${{ github.repository }}/my-app:${{ github.ref_name }}
+          fi
